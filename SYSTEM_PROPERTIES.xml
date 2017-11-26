@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE properties SYSTEM "http://java.sun.com/dtd/properties.dtd">
+<properties>
+<comment>SystemProperties</comment>
+<entry key="VOYAGE_BASE"/>
+<entry key="DB_USER">CMSS-PRE1</entry>
+<entry key="CARGO_BASE"/>
+<entry key="DB_PASS"/>
+<entry key="BOOKING_BASE"/>
+<entry key="SHIP_BASE">/home/tokyo/Desktop/ship4</entry>
+<entry key="DB_URL">jdbc:mariadb://localhost:3306/test</entry>
+</properties>
