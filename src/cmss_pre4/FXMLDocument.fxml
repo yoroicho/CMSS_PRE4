@@ -16,10 +16,21 @@
                   <content>
                     <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="167.0" prefWidth="393.0">
                            <children>
-                                <Button fx:id="button" layoutX="87.0" layoutY="112.0" onAction="#handleButtonAction" text="Click Me!" />
                                 <Label fx:id="label" layoutX="227.0" layoutY="114.0" minHeight="16" minWidth="69" />
-                              <Button fx:id="EnterCreateShipDirButton" layoutX="87.0" layoutY="164.0" mnemonicParsing="false" onAction="#handleButtonEnterCreateShipDirButtonAction" text="ENT" />
-                              <Label fx:id="labelEnterCreateShipDir" layoutX="131.0" layoutY="169.0" prefHeight="18.0" prefWidth="495.0" text="Label" />
+                              <ScrollPane layoutX="213.0" layoutY="14.0" prefHeight="325.0" prefWidth="665.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+                                <content>
+                                  <AnchorPane prefHeight="420.0" prefWidth="648.0">
+                                       <children>
+                                            <Button fx:id="button" layoutX="77.0" layoutY="366.0" onAction="#handleButtonAction" text="TEST" />
+                                          <Label fx:id="labelEnterCreateShipDir" layoutX="139.0" layoutY="254.0" prefHeight="18.0" prefWidth="495.0" text="Label" />
+                                          <Button fx:id="EnterCreateShipDirButton" layoutX="33.0" layoutY="249.0" mnemonicParsing="false" onAction="#handleButtonEnterCreateShipDirButtonAction" text="ENT" />
+                                          <TextField fx:id="textField_SHIP_ID" layoutX="127.0" layoutY="21.0" />
+                                          <TextField fx:id="textField_SHIP_SERVICE" layoutX="127.0" layoutY="61.0" />
+                                          <TextArea fx:id="textArea_SHIP_NAME" layoutX="127.0" layoutY="105.0" prefHeight="110.0" prefWidth="481.0" />
+                                       </children>
+                                    </AnchorPane>
+                                </content>
+                              </ScrollPane>
                            </children>
                         </AnchorPane>
                   </content>
@@ -66,6 +77,9 @@
               </menus>
             </MenuBar>
          </top>
+         <bottom>
+            <Pane prefHeight="24.0" prefWidth="665.0" BorderPane.alignment="CENTER" />
+         </bottom>
       </BorderPane>
     </children>
 </AnchorPane>

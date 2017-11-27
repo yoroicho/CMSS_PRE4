@@ -6,6 +6,7 @@
 package cmss_pre4;
 
 import DB.ConnectionClass;
+import DB.ConnectionShip;
 import FileDirController.CreateUnderDir;
 import common.SystemPropertiesAcc;
 import common.SystemPropertiesItem;
@@ -15,6 +16,8 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.ResourceBundle;
+import javafx.beans.value.ChangeListener;
+import javafx.beans.value.ObservableValue;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
@@ -52,6 +55,17 @@ public class FXMLDocumentController implements Initializable {
     @FXML
     private Label label;
 
+    @FXML
+    private TextField textField_SHIP_ID;
+    
+    @FXML
+    private TextField textField_SHIP_SERVICE;
+    
+    @FXML
+    private TextArea textArea_SHIP_NAME;
+    
+    
+    
     @FXML
     private TextField textFieldShipBaseDir;
 
@@ -92,11 +106,17 @@ public class FXMLDocumentController implements Initializable {
 
     @FXML
     private void handleButtonEnterCreateShipDirButtonAction(ActionEvent event) {
+        ConnectionShip.replaceShip(
+                textField_SHIP_ID.getText(),
+                textField_SHIP_SERVICE.getText(),
+                textArea_SHIP_NAME.getText());
         String createdDir = CreateUnderDir.makeUnderDirUUID("SHIP-", SystemPropertiesItem.SHIP_BASE);
         Date d = new Date();
         List<String> list = new ArrayList<>();
         list.add(createdDir);
-        list.add("SHIP_CREATED");
+        list.add("SHIP_ID:"+this.textField_SHIP_ID.getText());
+        list.add("SHIP_SERVICE:"+this.textField_SHIP_SERVICE.getText());
+        list.add("SHIP_NAME:"+this.textArea_SHIP_NAME.getText());
         list.add("----------------------------------------");
         list.add(new SimpleDateFormat("yyyy/MM/dd HH:mm:ss").format(d));
         list.add(new SimpleDateFormat("yyyy年MM月dd日 HH時mm分ss秒").format(d));
@@ -104,6 +124,7 @@ public class FXMLDocumentController implements Initializable {
         CreateUnderDir.makeFileUnderDirContAppend("log.txt", list, createdDir);
         labelEnterCreateShipDir.setText(createdDir);
         String createdSubDir = CreateUnderDir.makeUnderDirNamed("Documents", createdDir);
+        
     }
 
     @FXML // すべての内容を現在メモリに登録している状態にもどす。
@@ -116,6 +137,7 @@ public class FXMLDocumentController implements Initializable {
 
     @Override
     public void initialize(URL url, ResourceBundle rb) {
+        initFocuseConditionForTask(); // 編集不可にして主キーを保護。
         initializeSystemPropertiesWindow(); // システム設定に初期状態の表示をさせる。
     }
 
@@ -126,5 +148,25 @@ public class FXMLDocumentController implements Initializable {
         passwordFieldDatabasePass.setText(SystemPropertiesItem.DB_PASS);
         textFieldShipBaseDir.setText(SystemPropertiesItem.SHIP_BASE);
     }
+
+    private void initFocuseConditionForTask(){
+        this.textField_SHIP_ID.focusedProperty().addListener(new ChangeListener<Boolean>(){
+    @Override
+    public void changed(ObservableValue<? extends Boolean> arg0, 
+                        Boolean oldPropertyValue, Boolean newPropertyValue){
+        if (newPropertyValue)        {
+            //textField_SHIP_ID.setEditable(true);
+            System.out.println("Textfield on focus");
+        }
+        else                         {
+            //textField_SHIP_ID.setEditable(false);
+            textField_SHIP_ID.setDisable(true); // 編集不可になっていることが明確。ただし文字は見にくい。
+            System.out.println("Textfield out focus");
+            textField_SHIP_SERVICE.setText(ConnectionShip.getShipService(textField_SHIP_ID.getText().trim()));
+        }
+    }
+});
+    }
+    
 
 }

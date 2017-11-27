@@ -8,5 +8,5 @@
 <entry key="DB_PASS"/>
 <entry key="BOOKING_BASE"/>
 <entry key="SHIP_BASE">/home/tokyo/Desktop/ship4</entry>
-<entry key="DB_URL">jdbc:mariadb://localhost:3306/test</entry>
+<entry key="DB_URL">jdbc:mariadb://localhost:3306/test_utf8</entry>
 </properties>

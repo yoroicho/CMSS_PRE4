@@ -15,25 +15,57 @@ import java.sql.BatchUpdateException;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.sql.SQLException;
 
-public class ConnectionClass {
+public class ConnectionShip {
 
     // URLなどの情報は初期化ファイルから取得するのでこれらをどのように設定するかをまず考える。
     static final String URL = SystemPropertiesItem.DB_URL;
     static final String USERNAME = SystemPropertiesItem.DB_USER;
     static final String PASSWORD = SystemPropertiesItem.DB_PASS;
 
-    public static void preInsertShip() {
+    public static String getShipService(String id) {
+        String sql = "SELECT * from ship WHERE id = (?);";
 
-        String sql = "INSERT INTO ship VALUES (?, ?, ?);";
+        try (Connection connection = DriverManager.getConnection(URL, USERNAME, PASSWORD);
+                PreparedStatement statement = connection.prepareStatement(sql);) {
+            connection.setAutoCommit(false);
+            statement.setString(1, id);
+            statement.addBatch();
+            System.out.println(statement.toString());
+
+            ResultSet result = statement.executeQuery();
+            System.out.println("検索：" + result.getFetchSize() + "件");
+
+            try {
+                connection.commit();
+                System.out.println("検索成功");
+                 result.next();
+                 return result.getNString("service");
+            } catch (SQLException e) {
+
+                System.out.println("検索失敗");
+                e.printStackTrace();
+            }
+        } catch (BatchUpdateException e) {
+            System.out.println("登録失敗:すでに登録されています。");
+            e.printStackTrace();
+        } catch (SQLException e) {
+            System.out.println("outer");
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+
+
+public static void replaceShip(String id,String service ,String name) {
+
+        String sql = "REPLACE INTO ship VALUES (?, ?, ?);";
 
         String[][] list = {
-            {"FFFF", "Sam", "Stay With Me"},
-            {"GGGG", "Kan", "Gold Digger"},
-            {"HHHH", "Ron", "It's A Jazz Thing"},
-            {"IIII", "Pri", "Kiss"},
-            {"JJJJ", "Led", "When The Levee Breaks"}
+            {id, service, name}
         };
 
         try (Connection connection = DriverManager.getConnection(URL, USERNAME, PASSWORD);
