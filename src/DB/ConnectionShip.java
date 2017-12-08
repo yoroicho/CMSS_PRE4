@@ -25,6 +25,38 @@ public class ConnectionShip {
     static final String USERNAME = SystemPropertiesItem.DB_USER;
     static final String PASSWORD = SystemPropertiesItem.DB_PASS;
 
+    public static String getShipResultSet(String id) {
+        String sql = "SELECT * from ship WHERE id = (?);";
+
+        try (Connection connection = DriverManager.getConnection(URL, USERNAME, PASSWORD);
+                PreparedStatement statement = connection.prepareStatement(sql);) {
+            connection.setAutoCommit(false);
+            statement.setString(1, id);
+            statement.addBatch();
+            System.out.println(statement.toString());
+
+            ResultSet result = statement.executeQuery();
+            System.out.println("検索：" + result.getFetchSize() + "件");
+
+            try {
+                connection.commit();
+                System.out.println("検索成功");
+
+            } catch (SQLException e) {
+
+                System.out.println("検索失敗");
+                e.printStackTrace();
+            }
+        } catch (BatchUpdateException e) {
+            System.out.println("登録失敗:すでに登録されています。");
+            e.printStackTrace();
+        } catch (SQLException e) {
+            System.out.println("outer");
+            e.printStackTrace();
+        }
+        return null;
+    }
+
     public static String getShipService(String id) {
         String sql = "SELECT * from ship WHERE id = (?);";
 
@@ -41,8 +73,8 @@ public class ConnectionShip {
             try {
                 connection.commit();
                 System.out.println("検索成功");
-                 result.next();
-                 return result.getNString("service");
+                result.next();
+                return result.getNString("service");
             } catch (SQLException e) {
 
                 System.out.println("検索失敗");
@@ -58,14 +90,12 @@ public class ConnectionShip {
         return null;
     }
 
+    public static void replaceShip(String id, String service, String name, String remark) {
 
-
-public static void replaceShip(String id,String service ,String name) {
-
-        String sql = "REPLACE INTO ship VALUES (?, ?, ?);";
+        String sql = "REPLACE INTO ship VALUES (?, ?, ?, ?);";
 
         String[][] list = {
-            {id, service, name}
+            {id, service, name, remark}
         };
 
         try (Connection connection = DriverManager.getConnection(URL, USERNAME, PASSWORD);
@@ -75,6 +105,7 @@ public static void replaceShip(String id,String service ,String name) {
                 statement.setString(1, list[i][0]);
                 statement.setString(2, list[i][1]);
                 statement.setString(3, list[i][2]);
+                statement.setString(4, list[i][3]);
                 statement.addBatch();
                 System.out.println(statement.toString());
             }

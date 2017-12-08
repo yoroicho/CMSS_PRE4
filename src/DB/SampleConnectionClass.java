@@ -17,7 +17,7 @@ import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 
-public class ConnectionClass {
+public class SampleConnectionClass {
 
     // URLなどの情報は初期化ファイルから取得するのでこれらをどのように設定するかをまず考える。
     static final String URL = SystemPropertiesItem.DB_URL;

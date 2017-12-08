@@ -5,17 +5,23 @@
  */
 package cmss_pre4;
 
-import DB.ConnectionClass;
+import DB.SampleConnectionClass;
 import DB.ConnectionShip;
+import DB.DatabaseUty;
 import FileDirController.CreateUnderDir;
 import common.SystemPropertiesAcc;
 import common.SystemPropertiesItem;
 import java.net.URL;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.text.Normalizer;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.ResourceBundle;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.event.ActionEvent;
@@ -37,6 +43,8 @@ import javax.swing.JOptionPane;
  */
 public class FXMLDocumentController implements Initializable {
 
+    private boolean flgExsistShip;
+
     /**
      * ー設定変更タブについてー 各BASE等すべての設定をメモリへ読み出すのは起動時の一回のみ。 ウインドウのロード前にファイルからメモリにロード。
      * 画面を開いた時にはメモリの内容をウィンドウに表示させる。 変更は確定ボタンでメモリを介さず直接ファイルに書き込み。
@@ -57,15 +65,16 @@ public class FXMLDocumentController implements Initializable {
 
     @FXML
     private TextField textField_SHIP_ID;
-    
+
     @FXML
     private TextField textField_SHIP_SERVICE;
-    
+
     @FXML
     private TextArea textArea_SHIP_NAME;
-    
-    
-    
+
+    @FXML
+    private TextArea textArea_SHIP_REMARK;
+
     @FXML
     private TextField textFieldShipBaseDir;
 
@@ -73,10 +82,18 @@ public class FXMLDocumentController implements Initializable {
     private Label labelEnterCreateShipDir;
 
     @FXML
+    public TextField testTextField;
+
+    @FXML
+    private void testButtonAction(ActionEvent event) {
+testTextField.setText(String.valueOf(Integer.parseInt(testTextField.getText())*2));
+    }
+
+    @FXML
     private void handleButtonAction(ActionEvent event) {
         System.out.println("You clicked me!");
         label.setText(passwordFieldDatabasePass.getText());
-        ConnectionClass.preInsertShip();
+        SampleConnectionClass.preInsertShip();
 
     }
 
@@ -106,25 +123,33 @@ public class FXMLDocumentController implements Initializable {
 
     @FXML
     private void handleButtonEnterCreateShipDirButtonAction(ActionEvent event) {
-        ConnectionShip.replaceShip(
-                textField_SHIP_ID.getText(),
+        ConnectionShip.replaceShip( // データベースを更新。
+                Normalizer.normalize(textField_SHIP_ID.getText(), Normalizer.Form.NFKC), // 全角を限り無く半角に
                 textField_SHIP_SERVICE.getText(),
-                textArea_SHIP_NAME.getText());
-        String createdDir = CreateUnderDir.makeUnderDirUUID("SHIP-", SystemPropertiesItem.SHIP_BASE);
-        Date d = new Date();
-        List<String> list = new ArrayList<>();
-        list.add(createdDir);
-        list.add("SHIP_ID:"+this.textField_SHIP_ID.getText());
-        list.add("SHIP_SERVICE:"+this.textField_SHIP_SERVICE.getText());
-        list.add("SHIP_NAME:"+this.textArea_SHIP_NAME.getText());
-        list.add("----------------------------------------");
-        list.add(new SimpleDateFormat("yyyy/MM/dd HH:mm:ss").format(d));
-        list.add(new SimpleDateFormat("yyyy年MM月dd日 HH時mm分ss秒").format(d));
-        list.add("----------------------------------------");
-        CreateUnderDir.makeFileUnderDirContAppend("log.txt", list, createdDir);
-        labelEnterCreateShipDir.setText(createdDir);
-        String createdSubDir = CreateUnderDir.makeUnderDirNamed("Documents", createdDir);
-        
+                textArea_SHIP_NAME.getText(),
+                textArea_SHIP_REMARK.getText()
+        );
+        if (flgExsistShip) {
+            // ファイルに上書きを行う処理。フルパスをDBに登録する必要がある。
+            // UUIDからの導出では増設HDDにBASEが切り替わった時に迷子になる。
+            // 結局フォルダを作るのはUUIDではなく主キーの方がいいのかもしれない。
+        } else {
+            String createdDir = CreateUnderDir.makeUnderDirUUID("SHIP-", SystemPropertiesItem.SHIP_BASE);
+            Date d = new Date();
+            List<String> list = new ArrayList<>();
+            list.add(createdDir);
+            list.add("SHIP_ID:" + Normalizer.normalize(textField_SHIP_ID.getText(), Normalizer.Form.NFKC));// 全角を限り無く半角に
+            list.add("SHIP_SERVICE:" + this.textField_SHIP_SERVICE.getText());
+            list.add("SHIP_NAME:" + this.textArea_SHIP_NAME.getText());
+            list.add("SHIP_REMARK" + this.textArea_SHIP_REMARK.getText());
+            list.add("----------------------------------------");
+            list.add(new SimpleDateFormat("yyyy/MM/dd HH:mm:ss").format(d));
+            list.add(new SimpleDateFormat("yyyy年MM月dd日 HH時mm分ss秒").format(d));
+            list.add("----------------------------------------");
+            CreateUnderDir.makeFileUnderDirContAppend("log.txt", list, createdDir);
+            labelEnterCreateShipDir.setText(createdDir);
+            String createdSubDir = CreateUnderDir.makeUnderDirNamed("Documents", createdDir);
+        }
     }
 
     @FXML // すべての内容を現在メモリに登録している状態にもどす。
@@ -149,24 +174,36 @@ public class FXMLDocumentController implements Initializable {
         textFieldShipBaseDir.setText(SystemPropertiesItem.SHIP_BASE);
     }
 
-    private void initFocuseConditionForTask(){
-        this.textField_SHIP_ID.focusedProperty().addListener(new ChangeListener<Boolean>(){
-    @Override
-    public void changed(ObservableValue<? extends Boolean> arg0, 
-                        Boolean oldPropertyValue, Boolean newPropertyValue){
-        if (newPropertyValue)        {
-            //textField_SHIP_ID.setEditable(true);
-            System.out.println("Textfield on focus");
-        }
-        else                         {
-            //textField_SHIP_ID.setEditable(false);
-            textField_SHIP_ID.setDisable(true); // 編集不可になっていることが明確。ただし文字は見にくい。
-            System.out.println("Textfield out focus");
-            textField_SHIP_SERVICE.setText(ConnectionShip.getShipService(textField_SHIP_ID.getText().trim()));
-        }
+    private void initFocuseConditionForTask() {
+        this.textField_SHIP_ID.focusedProperty().addListener(new ChangeListener<Boolean>() {
+            @Override
+            public void changed(ObservableValue<? extends Boolean> arg0,
+                    Boolean oldPropertyValue, Boolean newPropertyValue) {
+                if (newPropertyValue) {
+                    //textField_SHIP_ID.setEditable(true);
+                    System.out.println("Textfield on focus");
+                } else {
+                    //textField_SHIP_ID.setEditable(false);
+                    textField_SHIP_ID.setDisable(true); // 編集不可になっていることが明確。ただし文字は見にくい。
+                    System.out.println("Textfield out focus");
+                    ResultSet rs = DatabaseUty.getResultSetByKey("ship", "id", textField_SHIP_ID.getText().trim());
+                    try {
+                        rs.next();
+                        textField_SHIP_SERVICE.setText(rs.getString("SERVICE"));
+                        textArea_SHIP_NAME.setText(rs.getString("NAME"));
+                        textArea_SHIP_REMARK.setText(rs.getString("REMARK"));
+                        flgExsistShip = true;
+                    } catch (SQLException ex) {
+                        Logger.getLogger(FXMLDocumentController.class.getName()).log(Level.SEVERE, null, ex);
+                        flgExsistShip = false;
+                        JOptionPane.showMessageDialog(null, "新規もしくはエラーです");
+                    }
+
+                }
+            }
+        });
     }
-});
-    }
-    
+
+
 
 }
